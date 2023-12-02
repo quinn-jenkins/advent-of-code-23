@@ -25,7 +25,7 @@ def fixString(text: str):
     return text
 
 def partOne():
-    with open("day1input.txt") as file:
+    with open("day1/day1input.txt") as file:
         sum = 0
         for line in file:
             print(line)
@@ -39,7 +39,7 @@ def partOne():
             print(f'Sum is now {sum}')
 
 def partTwo():
-    with open("day1input.txt") as file:
+    with open("day1/day1input.txt") as file:
         sum = 0
         for line in file:
             print(line)
