@@ -2,6 +2,7 @@ import re
 import functools
 import time
 from multiprocessing import Pool
+import math
 
 def calculateWaysToWinRace(raceTime : int, recordDistance : int, numThreads=8) -> int:
     print(f'Time {raceTime} -- Distance Record {recordDistance}')
@@ -54,5 +55,21 @@ def partTwo():
         waysToWinThisRace = calculateWaysToWinRace(raceTime, recordDistance, 16)
         print(f'{waysToWinThisRace} ways to win.')
 
+def partTwoEasyWay():
+    with open("day6/input.txt") as file:
+        lines = file.read().splitlines()
+        
+        raceTime = int(re.search(r'\d+', lines[0].replace(" ", "")).group())
+        recordDistance = int(re.search(r'\d+', lines[1].replace(" ", "")).group())
+
+        sqrtPart = math.sqrt(raceTime**2 - 4 * recordDistance) / 2
+
+        firstRoot = math.floor(raceTime + sqrtPart)
+        secondRoot = math.floor(raceTime - sqrtPart)
+
+        print(f'Roots are {firstRoot} , {secondRoot}')
+        print(f'There are {abs(firstRoot - secondRoot)} ways to win')
+
 if __name__ == "__main__":
+    partTwoEasyWay()
     partTwo()
