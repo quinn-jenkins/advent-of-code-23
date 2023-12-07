@@ -1,4 +1,6 @@
 import re
+import functools
+from multiprocessing import Pool
 
 def getLowestSeedLocation(seeds, steps):
     lowestLocation = -1
@@ -52,22 +54,21 @@ def getLineBreakLocations(lines):
     return lineBreaks
 
 def getPartTwoLowestSeedLocation(seedString : str, steps):
-    lowestSeedLocation = -1
     numbers = [int(s) for s in re.findall(r'\d+', seedString)]
     print(f'Numbers: {numbers}')
-    for i in range(0, len(numbers), 2):
-        start = numbers[i]
-        end = numbers[i] + numbers[i+1] - 1
-        print(f'Processing seeds from {start} to {end}')
-        for j in range(start, end):
-            # print(f'Processing seed {j}')
-            seedLocation = getSeedLocation(j, steps)
-            if lowestSeedLocation == -1:
-                lowestSeedLocation = seedLocation
-            elif seedLocation < lowestSeedLocation:
-                lowestSeedLocation = seedLocation
-    return lowestSeedLocation
-
+    seedLocationPartialFunction = functools.partial(getSeedLocation, steps=steps)
+    with Pool(processes=16) as pool:
+        smallestSeedLocation = None
+        for i in range(0, len(numbers), 2):
+            start = numbers[i]
+            end = numbers[i] + numbers[i+1] - 1
+            smallestSeedLocationInBatch = min(pool.map(seedLocationPartialFunction, range(start, end)))
+            print(f'Smallest seed location in {start} to {end} is {smallestSeedLocationInBatch}')
+            if smallestSeedLocation is None:
+                smallestSeedLocation = smallestSeedLocationInBatch
+            else:
+                smallestSeedLocation = min(smallestSeedLocation, smallestSeedLocationInBatch)
+        return smallestSeedLocation
 
 def partOne():
     with open("day5/day5input.txt") as file:
@@ -85,6 +86,7 @@ def partOne():
         getLowestSeedLocation(seeds, steps)
 
 def partTwo():
+    # This is not solved in a very smart way. Need to do this with bins of numbers since very large ranges of seeds (and through each step) will end up with the same number
     with open("day5/day5input.txt") as file:
         lines = file.read().splitlines()
 
@@ -97,5 +99,6 @@ def partTwo():
         lowestSeedLocation = getPartTwoLowestSeedLocation(lines[0], steps)
         print(f'Lowest seed location: {lowestSeedLocation}')
 
-# partOne()
-partTwo()
+if __name__ == "__main__":
+    # partOne()
+    partTwo()
