@@ -1,47 +1,46 @@
 from pprint import pprint
-import math
 
-def partOne(filename: str):
+partTwoExpansionFactor = 1000000
+
+def main(filename: str):
     with open(filename) as file:
         lines = file.read().splitlines()
 
         galaxyLocations = getGalaxyLocations(lines)
-        pprint(galaxyLocations)
-
         emptyRows = getEmptyRows(galaxyLocations, len(lines))
-        print(f'Empty rows: {emptyRows}')
-
         emptyCols = getEmptyColumns(galaxyLocations, len(lines[0]))
-        print(f'Empty cols: {emptyCols}')
+        galaxyDistances = getShortestGalaxyDistancePairs(galaxyLocations, emptyRows, emptyCols, True)
 
-        galaxyDistances = getShortestGalaxyDistancePairs(galaxyLocations, emptyRows, emptyCols)
-        print(f'Galaxy Distances Dict: {galaxyDistances}')
-
-        pair = 1
         totalDistance = 0
         for galaxy in galaxyDistances:
             for otherGalaxyDistance in galaxyDistances[galaxy]:
-                # print(f'Pair {pair} - {galaxy} and {otherGalaxyDistance[0]} - Distance {otherGalaxyDistance[1]}')
                 totalDistance += otherGalaxyDistance[1]
-                # print(f'Total distance is now: {totalDistance}')
-                pair+=1
+        print(f'Part One: {totalDistance}')
 
-def getShortestGalaxyDistancePairs(galaxyLocations, emptyRows : [], emptyCols : []) -> {}:
+        # Start Part Two
+        galaxyDistances = getShortestGalaxyDistancePairs(galaxyLocations, emptyRows, emptyCols, False)
+        totalDistance = 0
+        for galaxy in galaxyDistances:
+            for otherGalaxyDistance in galaxyDistances[galaxy]:
+                totalDistance += otherGalaxyDistance[1]
+        print(f'Part Two: {totalDistance}')
+
+def getShortestGalaxyDistancePairs(galaxyLocations, emptyRows : [], emptyCols : [], partOne : bool) -> {}:
     galaxyPairsDistance = {}
     for i, galaxy in enumerate(galaxyLocations):
         galaxyPairsDistance[galaxy] = []
         for otherGalaxy in galaxyLocations[i+1:]:
-            distance = getDistanceBetweenGalaxies(galaxy, otherGalaxy, emptyRows, emptyCols)
+            distance = getDistanceBetweenGalaxies(galaxy, otherGalaxy, emptyRows, emptyCols, partOne)
             galaxyPairsDistance[galaxy].append((otherGalaxy, distance))
     return galaxyPairsDistance
 
-def getDistanceBetweenGalaxies(startGalaxy, endGalaxy, emptyRows, emptyCols):
-    deltaX = getDeltaXWithExpansion(startGalaxy, endGalaxy, emptyRows)
-    deltaY = getDeltaYWithExpansion(startGalaxy, endGalaxy, emptyCols)
+def getDistanceBetweenGalaxies(startGalaxy, endGalaxy, emptyRows, emptyCols, partOne : bool):
+    deltaX = getDeltaXWithExpansion(startGalaxy, endGalaxy, emptyRows, partOne)
+    deltaY = getDeltaYWithExpansion(startGalaxy, endGalaxy, emptyCols, partOne)
 
     return deltaX + deltaY
 
-def getDeltaXWithExpansion(startGalaxy, endGalaxy, emptyRows) -> int:
+def getDeltaXWithExpansion(startGalaxy, endGalaxy, emptyRows, partOne : bool) -> int:
     startX = 0
     endX = 0
     if startGalaxy[0] > endGalaxy[0]:
@@ -56,10 +55,13 @@ def getDeltaXWithExpansion(startGalaxy, endGalaxy, emptyRows) -> int:
         if startX < emptyRow and endX > emptyRow:
             rowsCrossed.append(emptyRow)
 
-    deltaX = endX - startX + len(rowsCrossed)
+    expansion = 0
+    if len(rowsCrossed) > 0:
+        expansion = len(rowsCrossed) if partOne else (partTwoExpansionFactor - 1) * len(rowsCrossed)
+    deltaX = endX - startX + expansion
     return deltaX
 
-def getDeltaYWithExpansion(startGalaxy, endGalaxy, emptyCols) -> int:
+def getDeltaYWithExpansion(startGalaxy, endGalaxy, emptyCols, partOne : bool) -> int:
     startY = 0
     endY = 0
     if startGalaxy[1] > endGalaxy[1]:
@@ -73,8 +75,11 @@ def getDeltaYWithExpansion(startGalaxy, endGalaxy, emptyCols) -> int:
     for emptyCol in emptyCols:
         if startY < emptyCol and endY > emptyCol:
             colsCrossed.append(emptyCol)
-
-    deltaY = endY - startY + len(colsCrossed)
+    
+    expansion = 0
+    if len(colsCrossed) > 0:
+        expansion = len(colsCrossed) if partOne else (partTwoExpansionFactor - 1) * len(colsCrossed)
+    deltaY = endY - startY + expansion
     return deltaY
 
 # any row in the input that doesn't have a galaxy should actually be 2 rows
@@ -112,7 +117,6 @@ def getEmptyColumns(galaxyLocations : [], maxCols) -> []:
 
 if __name__ == "__main__":
     filename = "day11/example.txt"
-    partOne(filename)
-    # partTwo(filename)
+    # main(filename)
     filename = "day11/input.txt"
-    partOne(filename)
+    main(filename)
