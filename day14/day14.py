@@ -4,21 +4,16 @@ import functools
 def main(filename: str, partTwo : bool):
     with open(filename) as file:
         lines = [line.rstrip() for line in file]
-        # print('\n'.join(' '.join(str(x) for x in row) for row in lines))
         # rotate one extra time first so that "Left" is "North" because for some reason that makes more sense in my head
         lines = rotateCCW(lines)
         
         if partTwo:
-            print("Running part 2")
-            numCycles = 1000000000
+            numCycles = 1_000_000_000
             knownStates = {}
 
             for i in range(numCycles):
                 lines = runOneCycle(tuple(lines))
                 state = hash(lines)
-                # print(f"Cycle # {i}")
-                # print('\n'.join(' '.join(str(x) for x in row) for row in lines))
-                # print(20*"-")
                 if state in knownStates:
                     # we found a repetition, so now we can extrapolate out and not run a lot of the remaining cycles
                     cycleStart = knownStates[state]
@@ -33,13 +28,10 @@ def main(filename: str, partTwo : bool):
             for i in range(numCyclesLeft):
                 lines = runOneCycle(lines)
         else:
-            print("Running part 1")
             lines = tilt(lines)
         
         #undo our extra rotation
         lines = rotateClockwise(lines)
-
-        # print('\n'.join(' '.join(str(x) for x in row) for row in lines))
         load = countLoad(lines)
         
         print(f"{'Part Two' if partTwo else 'Part One'} : {load}")
@@ -104,7 +96,9 @@ def countLoad(lines) -> int:
 
 if __name__ == "__main__":
     filename = "day14/input.txt"
+    startTime = time.time()
     main(filename, False)
+    print(f"Part One time: {time.time() - startTime:.3f} sec")
     startTime = time.time()
     main(filename, True)
-    print(f"Total time to run {time.time() - startTime}")
+    print(f"Part Two time: {time.time() - startTime:.3f} sec")
