@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,groovy,intellij,java,rust
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,groovy,intellij,java,rust
 
+## specific for advent of code, don't add input files per AoC author's request
+*input.txt
+
 ### Groovy ###
 # .gitignore created from Groovy contributors in https://github.com/apache/groovy/blob/master/.gitignore
 
