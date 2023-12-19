@@ -1,12 +1,13 @@
 import time
 import functools
 
-def main(filename: str, partTwo : bool):
+
+def main(filename: str, partTwo: bool):
     with open(filename) as file:
         lines = [line.rstrip() for line in file]
         # rotate one extra time first so that "Left" is "North" because for some reason that makes more sense in my head
         lines = rotateCCW(lines)
-        
+
         if partTwo:
             numCycles = 1_000_000_000
             knownStates = {}
@@ -18,7 +19,9 @@ def main(filename: str, partTwo : bool):
                     # we found a repetition, so now we can extrapolate out and not run a lot of the remaining cycles
                     cycleStart = knownStates[state]
                     cycleSize = i - cycleStart
-                    print(f"Found a repeated state after {i} cycles! Cycle is {cycleSize} long and starts at iteration {cycleStart}.")
+                    print(
+                        f"Found a repeated state after {i} cycles! Cycle is {cycleSize} long and starts at iteration {cycleStart}."
+                    )
                     break
                 else:
                     knownStates[state] = i
@@ -29,19 +32,20 @@ def main(filename: str, partTwo : bool):
                 lines = runOneCycle(lines)
         else:
             lines = tilt(lines)
-        
-        #undo our extra rotation
+
+        # undo our extra rotation
         lines = rotateClockwise(lines)
         load = countLoad(lines)
-        
+
         print(f"{'Part Two' if partTwo else 'Part One'} : {load}")
+
 
 @functools.cache
 def runOneCycle(lines):
     # rotate north
     lines = tilt(lines)
     lines = rotateClockwise(lines)
-    
+
     # rotate west
     lines = tilt(lines)
     lines = rotateClockwise(lines)
@@ -56,17 +60,21 @@ def runOneCycle(lines):
 
     return lines
 
+
 def rotateCCW(lines):
     return tuple(zip(*lines))[::-1]
 
+
 def rotateClockwise(lines):
     return tuple(zip(*lines[::-1]))
+
 
 def tilt(lines):
     tilted = []
     for line in lines:
         tilted.append(tiltLine(line))
     return tilted
+
 
 @functools.cache
 def tiltLine(line):
@@ -75,7 +83,7 @@ def tiltLine(line):
     for i, ch in enumerate(line):
         if i > blockedIndex:
             if ch == "#":
-                blockedIndex = i+1
+                blockedIndex = i + 1
             elif ch == "O":
                 # move it to the blocked index, and open up its space
                 line[blockedIndex] = "O"
@@ -86,6 +94,7 @@ def tiltLine(line):
                 blockedIndex += 1
     return tuple(line)
 
+
 def countLoad(lines) -> int:
     totalLoad = 0
     load = len(lines)
@@ -93,6 +102,7 @@ def countLoad(lines) -> int:
         totalLoad += load * line.count("O")
         load -= 1
     return totalLoad
+
 
 if __name__ == "__main__":
     filename = "day14/input.txt"

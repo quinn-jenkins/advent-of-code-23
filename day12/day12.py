@@ -1,7 +1,8 @@
 import functools
 import time
 
-def main(filename: str, partTwo : bool):
+
+def main(filename: str, partTwo: bool):
     with open(filename) as file:
         lines = file.read().splitlines()
 
@@ -10,7 +11,7 @@ def main(filename: str, partTwo : bool):
             if partTwo:
                 line = expandLineForPartTwo(line)
             puzzle, groupsAsChars = line.split(" ")
-            groups = tuple([int(i) for i in groupsAsChars.split(',')])
+            groups = tuple([int(i) for i in groupsAsChars.split(",")])
             possibleSolutions = getPermutations(puzzle, groups)
             totalPermutations += possibleSolutions
 
@@ -19,9 +20,31 @@ def main(filename: str, partTwo : bool):
         else:
             print(f"Part One: {totalPermutations}")
 
-def expandLineForPartTwo(line : str):
+
+def expandLineForPartTwo(line: str):
     puzzle, groups = line.split(" ")
-    return puzzle +"?" + puzzle +"?" + puzzle +"?" + puzzle +"?" + puzzle + " " + groups +"," + groups +"," + groups +"," + groups +"," + groups 
+    return (
+        puzzle
+        + "?"
+        + puzzle
+        + "?"
+        + puzzle
+        + "?"
+        + puzzle
+        + "?"
+        + puzzle
+        + " "
+        + groups
+        + ","
+        + groups
+        + ","
+        + groups
+        + ","
+        + groups
+        + ","
+        + groups
+    )
+
 
 @functools.cache
 def getPermutations(puzzle: str, groups):
@@ -36,7 +59,7 @@ def getPermutations(puzzle: str, groups):
     if len(puzzle) == 0:
         # we're done!
         return 0
-    
+
     currentChar = puzzle[0]
     currentGroup = groups[0]
 
@@ -46,7 +69,7 @@ def getPermutations(puzzle: str, groups):
     def isPound():
         # if our current character is #, then the next len(currentGroup) characters must _also_ be # signs (or ?) for this to be valid
         groupChars = puzzle[:currentGroup].replace("?", "#")
-        
+
         # if there is a . still in the current string, this is an invalid solution
         if groupChars != currentGroup * "#":
             return 0
@@ -59,12 +82,12 @@ def getPermutations(puzzle: str, groups):
             else:
                 # this is not a valid solution
                 return 0
-        
+
         # we're somewhere in the middle of the puzzle...
         # we need to make sure that the character after this group of characters is, or can be, a .
         if puzzle[currentGroup] in "?.":
-            return getPermutations(puzzle[currentGroup+1:], groups[1:])
-        
+            return getPermutations(puzzle[currentGroup + 1 :], groups[1:])
+
         # not possible
         return 0
 
@@ -76,9 +99,10 @@ def getPermutations(puzzle: str, groups):
     elif currentChar == "?":
         # can be either, so try both
         permsInThisStep = isDot() + isPound()
-    
+
     # print(puzzle, groups, permsInThisStep)
     return permsInThisStep
+
 
 if __name__ == "__main__":
     filename = "day12/input.txt"

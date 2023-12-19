@@ -1,41 +1,42 @@
-
-def computeCardValues(hand : str):
+def computeCardValues(hand: str):
     # hands are 5 cards
     cardValues = []
     for i in range(5):
         if hand[i].isdigit():
             cardValues.append(int(hand[i]))
         else:
-            if hand[i] == 'T':
+            if hand[i] == "T":
                 cardValues.append(10)
-            elif hand[i] == 'J':
+            elif hand[i] == "J":
                 cardValues.append(11)
-            elif hand[i] == 'Q':
+            elif hand[i] == "Q":
                 cardValues.append(12)
-            elif hand[i] == 'K':
+            elif hand[i] == "K":
                 cardValues.append(13)
-            elif hand[i] == 'A':
+            elif hand[i] == "A":
                 cardValues.append(14)
     return cardValues
 
-def computeCardValuesPartTwo(hand : str):
+
+def computeCardValuesPartTwo(hand: str):
     # hands are 5 cards
     cardValues = []
     for i in range(5):
         if hand[i].isdigit():
             cardValues.append(int(hand[i]))
         else:
-            if hand[i] == 'T':
+            if hand[i] == "T":
                 cardValues.append(10)
-            elif hand[i] == 'J':
+            elif hand[i] == "J":
                 cardValues.append(1)
-            elif hand[i] == 'Q':
+            elif hand[i] == "Q":
                 cardValues.append(12)
-            elif hand[i] == 'K':
+            elif hand[i] == "K":
                 cardValues.append(13)
-            elif hand[i] == 'A':
+            elif hand[i] == "A":
                 cardValues.append(14)
     return cardValues
+
 
 def getMatches(hand):
     matches = {}
@@ -43,6 +44,7 @@ def getMatches(hand):
         matches[card] = sum(card == match for match in hand)
 
     return matches
+
 
 def getMatchesPartTwo(hand):
     matches = {}
@@ -52,7 +54,11 @@ def getMatchesPartTwo(hand):
     # print(f'Hand {hand}')
     # print(f'Matches {matches}')
     # create a sorted list of Tuple<card, number of matches> for any card that occurs more than once EXCLUDING JOKERS
-    sortedMatches = sorted(filter(lambda x: x[1] > 1 and x[0] != 1, matches.items()), key=lambda x:x[1], reverse=True)
+    sortedMatches = sorted(
+        filter(lambda x: x[1] > 1 and x[0] != 1, matches.items()),
+        key=lambda x: x[1],
+        reverse=True,
+    )
     # print(f'Sorted matches {sortedMatches}')
     if 1 in matches:
         # there is at least one joker in the hand
@@ -71,6 +77,7 @@ def getMatchesPartTwo(hand):
                 matches[1] = 0
 
     return matches
+
 
 def partOne():
     with open("day7/input.txt") as file:
@@ -93,7 +100,11 @@ def partOne():
             handToBidAmount[handNum] = bidAmount
             handToCardValues[handNum] = cardValues
             # print(f'Hand {handNum} Card values: {cardValues} - bid {bidAmount}')
-            matches = sorted(filter(lambda x: x[1] > 1, getMatches(cardValues).items()), key=lambda x:x[1], reverse=True)
+            matches = sorted(
+                filter(lambda x: x[1] > 1, getMatches(cardValues).items()),
+                key=lambda x: x[1],
+                reverse=True,
+            )
             if len(matches) == 0:
                 # print("No matches -- high card")
                 highCard.append(handNum)
@@ -116,13 +127,13 @@ def partOne():
                 # print("Two Pair")
                 twoPair.append(handNum)
 
-        fiveOfAKind=sorted(fiveOfAKind, key=lambda hand : handToCardValues[hand])
-        fourOfAKind=sorted(fourOfAKind, key=lambda hand : handToCardValues[hand])
-        fullHouse=sorted(fullHouse, key=lambda hand : handToCardValues[hand])
-        threeOfAKind=sorted(threeOfAKind, key=lambda hand : handToCardValues[hand])
-        twoPair=sorted(twoPair, key=lambda hand : handToCardValues[hand])
-        pair=sorted(pair, key=lambda hand : handToCardValues[hand])
-        highCard=sorted(highCard, key=lambda hand : handToCardValues[hand])
+        fiveOfAKind = sorted(fiveOfAKind, key=lambda hand: handToCardValues[hand])
+        fourOfAKind = sorted(fourOfAKind, key=lambda hand: handToCardValues[hand])
+        fullHouse = sorted(fullHouse, key=lambda hand: handToCardValues[hand])
+        threeOfAKind = sorted(threeOfAKind, key=lambda hand: handToCardValues[hand])
+        twoPair = sorted(twoPair, key=lambda hand: handToCardValues[hand])
+        pair = sorted(pair, key=lambda hand: handToCardValues[hand])
+        highCard = sorted(highCard, key=lambda hand: handToCardValues[hand])
 
         # print(f'Five of a kind {fiveOfAKind}')
         # print(f'Four of a kind {fourOfAKind}')
@@ -170,7 +181,8 @@ def partOne():
             # print(f'Rank {rank} Hand Number {handNumber} Bid Amount {handToBidAmount[handNumber]} Winnings {handToBidAmount[handNumber] * rank}')
             rank += 1
 
-        print(f'Total Winnings {totalWinnings}')
+        print(f"Total Winnings {totalWinnings}")
+
 
 def partTwo():
     with open("day7/input.txt") as file:
@@ -193,7 +205,11 @@ def partTwo():
             handToBidAmount[handNum] = bidAmount
             handToCardValues[handNum] = cardValues
             # print(f'Hand {handNum} Card values: {cardValues} - bid {bidAmount}')
-            matches = sorted(filter(lambda x: x[1] > 1, getMatchesPartTwo(cardValues).items()), key=lambda x:x[1], reverse=True)
+            matches = sorted(
+                filter(lambda x: x[1] > 1, getMatchesPartTwo(cardValues).items()),
+                key=lambda x: x[1],
+                reverse=True,
+            )
             if len(matches) == 0:
                 # print("No matches -- high card")
                 highCard.append(handNum)
@@ -218,13 +234,13 @@ def partTwo():
             else:
                 print("ERROR")
 
-        fiveOfAKind=sorted(fiveOfAKind, key=lambda hand : handToCardValues[hand])
-        fourOfAKind=sorted(fourOfAKind, key=lambda hand : handToCardValues[hand])
-        fullHouse=sorted(fullHouse, key=lambda hand : handToCardValues[hand])
-        threeOfAKind=sorted(threeOfAKind, key=lambda hand : handToCardValues[hand])
-        twoPair=sorted(twoPair, key=lambda hand : handToCardValues[hand])
-        pair=sorted(pair, key=lambda hand : handToCardValues[hand])
-        highCard=sorted(highCard, key=lambda hand : handToCardValues[hand])
+        fiveOfAKind = sorted(fiveOfAKind, key=lambda hand: handToCardValues[hand])
+        fourOfAKind = sorted(fourOfAKind, key=lambda hand: handToCardValues[hand])
+        fullHouse = sorted(fullHouse, key=lambda hand: handToCardValues[hand])
+        threeOfAKind = sorted(threeOfAKind, key=lambda hand: handToCardValues[hand])
+        twoPair = sorted(twoPair, key=lambda hand: handToCardValues[hand])
+        pair = sorted(pair, key=lambda hand: handToCardValues[hand])
+        highCard = sorted(highCard, key=lambda hand: handToCardValues[hand])
 
         # print(f'Five of a kind {fiveOfAKind}')
         # print(f'Four of a kind {fourOfAKind}')
@@ -286,13 +302,14 @@ def partTwo():
 
         # for i in fullHouse:
         #     print(f'Full House: {handToCardValues[i]}')
-            
+
         # for i in fourOfAKind:
         #     print(f'Four: {handToCardValues[i]}')
 
         # for i in fiveOfAKind:
         #     print(f'Five: {handToCardValues[i]}')
-        print(f'Total Winnings {totalWinnings}')
+        print(f"Total Winnings {totalWinnings}")
+
 
 if __name__ == "__main__":
     partTwo()

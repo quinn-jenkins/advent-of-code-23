@@ -1,7 +1,8 @@
 import time
 from heapq import heappop, heappush
 
-def main(filename: str, partOne : bool):
+
+def main(filename: str, partOne: bool):
     with open(filename) as file:
         lines = [line.rstrip() for line in file]
         if partOne:
@@ -11,7 +12,8 @@ def main(filename: str, partOne : bool):
             minheat = djikstra(lines, 4, 10)
             print(f"Part Two: {minheat}")
 
-def djikstra(lines, minMoves : int, maxMoves : int):
+
+def djikstra(lines, minMoves: int, maxMoves: int):
     startNode = (0, 0, 0, -1)
     endRow = len(lines) - 1
     endCol = len(lines[endRow]) - 1
@@ -29,14 +31,14 @@ def djikstra(lines, minMoves : int, maxMoves : int):
             continue
 
         closedList.add((curRow, curCol, prevDir))
-        
+
         for direction in range(4):
             # can't go back the way we came, but also can't continue in the same direction
             if direction == prevDir or (direction + 2) % 4 == prevDir:
                 continue
-            
+
             heatIncrease = 0
-            for i in range(1, maxMoves+1):
+            for i in range(1, maxMoves + 1):
                 newRow = curRow + directionOptions[direction][0] * i
                 newCol = curCol + directionOptions[direction][1] * i
                 if isPositionInLines(lines, (newRow, newCol)):
@@ -46,10 +48,17 @@ def djikstra(lines, minMoves : int, maxMoves : int):
                     totalHeat = currentHeat + heatIncrease
                     heappush(openList, (totalHeat, newRow, newCol, direction))
 
+
 def isPositionInLines(lines, position):
-    if position[0] >= 0 and position[1] >= 0 and position[0] < len(lines) and position[1] < len(lines[position[0]]):
+    if (
+        position[0] >= 0
+        and position[1] >= 0
+        and position[0] < len(lines)
+        and position[1] < len(lines[position[0]])
+    ):
         return True
-    return False     
+    return False
+
 
 if __name__ == "__main__":
     filename = "day17/input.txt"

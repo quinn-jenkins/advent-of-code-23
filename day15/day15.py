@@ -1,7 +1,8 @@
 import time
 from collections import defaultdict
 
-def main(filename: str, partOne : bool):
+
+def main(filename: str, partOne: bool):
     with open(filename) as file:
         input = file.readline().strip()
         commands = input.split(",")
@@ -18,7 +19,9 @@ def main(filename: str, partOne : bool):
                     lensLabel, focalLength = command.split("-")
                     box = hash(lensLabel)
                     currentBoxContents = boxes[box]
-                    indexOfLensToRemove = getIndexOfSameLens(currentBoxContents, lensLabel)
+                    indexOfLensToRemove = getIndexOfSameLens(
+                        currentBoxContents, lensLabel
+                    )
                     if indexOfLensToRemove != None:
                         currentBoxContents.pop(indexOfLensToRemove)
                         boxes[box] = currentBoxContents
@@ -41,7 +44,7 @@ def main(filename: str, partOne : bool):
                 totalFocusingPower += focusingPower * (box + 1)
             print(f"Part Two: {totalFocusingPower}")
 
-                
+
 def printBoxes(boxes):
     for box in boxes:
         if len(boxes[box]) > 0:
@@ -49,20 +52,23 @@ def printBoxes(boxes):
             for lens in boxes[box]:
                 print(f"\tLens: {lens}")
 
-def getIndexOfSameLens(boxContents : list[str], lensLabel) -> int:
+
+def getIndexOfSameLens(boxContents: list[str], lensLabel) -> int:
     for index, lens in enumerate(boxContents):
         if lens[0] == lensLabel:
             # we already have this lense, so replace it with our new one
             return index
     return None
 
-def hash(command : str) -> int:
+
+def hash(command: str) -> int:
     currentVal = 0
     for ch in command:
         currentVal += ord(ch)
         currentVal *= 17
         currentVal = currentVal % 256
     return currentVal
+
 
 if __name__ == "__main__":
     filename = "day15/input.txt"
