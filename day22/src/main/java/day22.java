@@ -4,12 +4,14 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class day22
@@ -26,17 +28,17 @@ public class day22
         try
         {
             List<String> allLines = Files.readAllLines(Paths.get("src/main/resources/input.txt"));
-            partOne(allLines);
+            playJenga(allLines);
         } catch (Exception e)
         {
             logger.error("Caught exception", e);
         }
     }
 
-    private void partOne(List<String> puzzle)
+    private void playJenga(List<String> puzzle)
     {
         List<Brick> bricks = new ArrayList<>();
-        Map<Integer, List<Brick>> bricksByLayer = new HashMap<>();
+        Map<Integer, List<Brick>> bricksByLayer = new TreeMap<>();
         int maxX = 0;
         int maxY = 0;
         int brickId = 0;
@@ -47,7 +49,7 @@ public class day22
             Integer[] endCoords = convertToInts(parts[1].split(","));
             GridCoord start = new GridCoord(startCoords[0], startCoords[1], startCoords[2]);
             GridCoord end = new GridCoord(endCoords[0], endCoords[1], endCoords[2]);
-            Brick brick = new Brick("" + brickId, start, end);
+            Brick brick = new Brick(brickId, start, end);
             bricks.add(brick);
             int zStart = start.z();
             int zEnd = end.z();
@@ -55,54 +57,28 @@ public class day22
             {
                 bricksByLayer.computeIfAbsent(z, k -> new ArrayList<>()).add(brick);
             }
-            maxX = Math.max(start.x(), maxX);
+            // Assumes that the end is always either the same as the start x/y or larger
             maxX = Math.max(end.x(), maxX);
-            maxY = Math.max(start.y(), maxY);
             maxY = Math.max(end.y(), maxY);
             brickId++;
         }
 
-        Map<Integer, List<Brick>> fallenBricks = completeFallingBricks(bricksByLayer, maxX, maxY);
+        // TODO: I'm sure that this can all be done in one step by keeping track of the brick at the highest point in an
+        //  x-y coordinate when doing the falling simulation
+        Map<Integer, List<Brick>> fallenBricks = completeFallingBricks(bricks, maxX, maxY);
+        Map<Integer, List<Integer>> supportingBricks = findBricksThatSupportOtherBricks(bricks, fallenBricks);
 
-        List<Brick> layerBelow = null;
-        Map<String, List<String>> supportingBricks = new HashMap<>();
-        for (Brick b : bricks)
-        {
-            supportingBricks.put(b.getName(), new ArrayList<>());
-        }
-        for (Map.Entry<Integer, List<Brick>> entry : fallenBricks.entrySet())
-        {
-            if (layerBelow == null)
-            {
-                layerBelow = entry.getValue();
-                continue;
-            }
-
-            for (Brick possibleSuppportingBrick : layerBelow)
-            {
-                for (Brick brick : entry.getValue())
-                {
-                    if (possibleSuppportingBrick.supportsOtherBrick(brick))
-                    {
-                        supportingBricks.get(possibleSuppportingBrick.getName()).add(brick.getName());
-                    }
-                }
-            }
-
-            layerBelow = entry.getValue();
-        }
-
-        Map<String, List<String>> supportedByMap = invertMap(supportingBricks);
-        Set<String> freeBricks = new HashSet<>();
-        List<String> bricksSupportingOthers = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : supportingBricks.entrySet())
+        Map<Integer, List<Integer>> supportedByMap = invertMap(supportingBricks);
+        Set<Integer> freeBricks = new TreeSet<>();
+        Set<Integer> bricksSupportingOthers = new TreeSet<>();
+        for (Map.Entry<Integer, List<Integer>> entry : supportingBricks.entrySet())
         {
             if (entry.getValue().isEmpty())
             {
                 freeBricks.add(entry.getKey());
             }
             boolean allSupportedMoreThanOnce = true;
-            for (String supportedBrick : entry.getValue())
+            for (Integer supportedBrick : entry.getValue())
             {
                 if (supportedByMap.get(supportedBrick).size() <= 1)
                 {
@@ -122,9 +98,10 @@ public class day22
         logger.info("Part One: {}", freeBricks.size());
 
         int sum = 0;
-        for (String brick : bricksSupportingOthers)
+        for (Integer brick : bricksSupportingOthers)
         {
-            sum += getChainReactionSize(brick, supportingBricks, supportedByMap);
+            int chainReactionSize = getChainReactionSize(brick, supportingBricks, supportedByMap);
+            sum += chainReactionSize;
         }
 
         logger.info("Part Two: {}", sum);
@@ -132,23 +109,60 @@ public class day22
     }
 
     /**
+     * @param bricks       All bricks in the input
+     * @param fallenBricks Map of Layer # (Z-coord) to the list of bricks that exist in that layer
+     * @return a map of Brick (Key) -> List of all bricks that the Key brick is supporting
+     */
+    private Map<Integer, List<Integer>> findBricksThatSupportOtherBricks(List<Brick> bricks, Map<Integer, List<Brick>> fallenBricks)
+    {
+        List<Brick> layerBelow = null;
+        Map<Integer, List<Integer>> supportingBricks = new TreeMap<>();
+        for (Brick b : bricks)
+        {
+            supportingBricks.put(b.getBrickId(), new ArrayList<>());
+        }
+        for (Map.Entry<Integer, List<Brick>> entry : fallenBricks.entrySet())
+        {
+            if (layerBelow == null)
+            {
+                layerBelow = entry.getValue();
+                continue;
+            }
+
+            for (Brick possibleSuppportingBrick : layerBelow)
+            {
+                for (Brick brick : entry.getValue())
+                {
+                    if (possibleSuppportingBrick.supportsOtherBrick(brick))
+                    {
+                        supportingBricks.get(possibleSuppportingBrick.getBrickId()).add(brick.getBrickId());
+                    }
+                }
+            }
+
+            layerBelow = entry.getValue();
+        }
+        return supportingBricks;
+    }
+
+    /**
      * Supporting Bricks: Key is supporting each of the bricks in the value list
      * Bricks Supported By: Key is supported by each of the bricks in the value list
      */
-    private int getChainReactionSize(String brick, Map<String, List<String>> supportingBricks, Map<String, List<String>> bricksSupportedBy)
+    private int getChainReactionSize(Integer brick, Map<Integer, List<Integer>> supportingBricks, Map<Integer, List<Integer>> bricksSupportedBy)
     {
         int numDisintegrated = 0;
-        Set<String> disintegratedBricks = new HashSet<>();
-        Queue<String> brickQueue = new LinkedBlockingQueue<>();
+        Set<Integer> disintegratedBricks = new HashSet<>();
+        Queue<Integer> brickQueue = new LinkedBlockingQueue<>();
         brickQueue.add(brick);
 
         while (!brickQueue.isEmpty())
         {
-            String currentBrick = brickQueue.poll();
+            Integer currentBrick = brickQueue.poll();
             disintegratedBricks.add(currentBrick);
-            for (String supportedBrick : supportingBricks.get(currentBrick))
+            for (Integer supportedBrick : supportingBricks.get(currentBrick))
             {
-                List<String> bricksHoldingThisBrick = bricksSupportedBy.get(supportedBrick);
+                List<Integer> bricksHoldingThisBrick = new ArrayList<>(bricksSupportedBy.get(supportedBrick));
                 bricksHoldingThisBrick.removeAll(disintegratedBricks);
                 if (bricksHoldingThisBrick.isEmpty())
                 {
@@ -157,16 +171,21 @@ public class day22
                 }
             }
         }
-        logger.info("{} bricks fall when {} is disintegrated", numDisintegrated, brick);
         return numDisintegrated;
     }
 
-    private Map<String, List<String>> invertMap(Map<String, List<String>> orig)
+    /**
+     * Computes the inverse of the original map such that each value in the original map links back to the list of keys that originally pointed to it
+     *
+     * @param orig Original map of Brick -> All bricks being supported by the Key brick
+     * @return Inverse map which is now Brick -> All bricks that support the key brick
+     */
+    private Map<Integer, List<Integer>> invertMap(Map<Integer, List<Integer>> orig)
     {
-        Map<String, List<String>> inverted = new HashMap<>();
-        for (Map.Entry<String, List<String>> entry : orig.entrySet())
+        Map<Integer, List<Integer>> inverted = new TreeMap<>();
+        for (Map.Entry<Integer, List<Integer>> entry : orig.entrySet())
         {
-            for (String s : entry.getValue())
+            for (Integer s : entry.getValue())
             {
                 inverted.computeIfAbsent(s, k -> new ArrayList<>()).add(entry.getKey());
             }
@@ -174,30 +193,42 @@ public class day22
         return inverted;
     }
 
-    private Map<Integer, List<Brick>> completeFallingBricks(Map<Integer, List<Brick>> startingBricks, int widthX, int widthY)
+    /**
+     * Completes the falling simulation and returns a map of Layer -> List of all the bricks that exist in that layer
+     *
+     * @param allBricks All bricks from the input file
+     * @param widthX    Width of the grid in the X domain
+     * @param widthY    Width of the grid in the Y domain
+     * @return Map of Layer # (Z coordinate) -> List of all bricks that exist in that layer. Note that in the case of a vertical brick,
+     * a brick can appear in multiple layers
+     */
+    private Map<Integer, List<Brick>> completeFallingBricks(List<Brick> allBricks, int widthX, int widthY)
     {
-        Map<Integer, List<Brick>> fallenBricks = new HashMap<>();
+        Map<Integer, List<Brick>> fallenBricks = new TreeMap<>();
         int[][] highestBrickAtXY = new int[widthX + 1][widthY + 1];
-        for (Map.Entry<Integer, List<Brick>> entry : startingBricks.entrySet())
+        allBricks = allBricks.stream()
+                .sorted(Comparator.comparingInt(Brick::getMaxZ))
+                .toList();
+        for (Brick b : allBricks)
         {
-            for (Brick b : entry.getValue())
+            int highestSupport = 0;
+            for (GridCoord gridCoord : b.getBrickSpan())
             {
-                int highestSupport = 0;
-                for (GridCoord gridCoord : b.getBrickSpan())
+                highestSupport = Math.max(highestBrickAtXY[gridCoord.x()][gridCoord.y()], highestSupport);
+            }
+            int brickSettledLayer = highestSupport + 1;
+            Brick newBrick = b.shiftBrickDown(brickSettledLayer);
+            for (int layer = brickSettledLayer; layer <= brickSettledLayer + newBrick.getDeltaZ(); layer++)
+            {
+                fallenBricks.computeIfAbsent(layer, k -> new ArrayList<>()).add(newBrick);
+            }
+            // we're supported, so see if we update the highest point anywhere
+            for (GridCoord gridCoord : newBrick.getBrickSpan())
+            {
+                int currentHighest = highestBrickAtXY[gridCoord.x()][gridCoord.y()];
+                if (gridCoord.z() > currentHighest)
                 {
-                    highestSupport = Math.max(highestBrickAtXY[gridCoord.x()][gridCoord.y()], highestSupport);
-                }
-                int brickSettledLayer = highestSupport + 1;
-                Brick newBrick = b.shiftBrickDown(brickSettledLayer);
-                fallenBricks.computeIfAbsent(brickSettledLayer, k -> new ArrayList<>()).add(newBrick);
-                // we're supported, so see if we update the highest point anywhere
-                for (GridCoord gridCoord : newBrick.getBrickSpan())
-                {
-                    int currentHighest = highestBrickAtXY[gridCoord.x()][gridCoord.y()];
-                    if (gridCoord.z() > currentHighest)
-                    {
-                        highestBrickAtXY[gridCoord.x()][gridCoord.y()] = gridCoord.z();
-                    }
+                    highestBrickAtXY[gridCoord.x()][gridCoord.y()] = gridCoord.z();
                 }
             }
         }

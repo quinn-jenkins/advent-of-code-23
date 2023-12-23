@@ -4,15 +4,15 @@ import java.util.List;
 
 public class Brick
 {
-    private final String name;
+    private final int brickId;
     private final GridCoord start;
     private final GridCoord end;
 
     private final List<GridCoord> brickSpan = new ArrayList<>();
 
-    public Brick(String name, GridCoord start, GridCoord end)
+    public Brick(int brickId, GridCoord start, GridCoord end)
     {
-        this.name = name;
+        this.brickId = brickId;
         this.start = start;
         this.end = end;
 
@@ -28,9 +28,9 @@ public class Brick
         }
     }
 
-    public String getName()
+    public int getBrickId()
     {
-        return this.name;
+        return brickId;
     }
 
     public List<GridCoord> getBrickSpan()
@@ -38,9 +38,24 @@ public class Brick
         return Collections.unmodifiableList(brickSpan);
     }
 
+    public int getMaxZ()
+    {
+        int highestZ = 0;
+        for (GridCoord gridCoord : getBrickSpan())
+        {
+            highestZ = Math.max(highestZ, gridCoord.z());
+        }
+        return highestZ;
+    }
+
+    public int getDeltaZ()
+    {
+        return end.z() - start.z();
+    }
+
     public boolean supportsOtherBrick(Brick other)
     {
-        if (getName().equals(other.getName()))
+        if (getBrickId() == other.getBrickId())
         {
             return false;
         }
@@ -59,16 +74,17 @@ public class Brick
 
     public Brick shiftBrickDown(int newZ)
     {
+        int deltaZ = end.z() - start.z();
         GridCoord newStart = new GridCoord(start.x(), start.y(), newZ);
-        GridCoord newEnd = new GridCoord(end.x(), end.y(), newZ);
-        return new Brick(name, newStart, newEnd);
+        GridCoord newEnd = new GridCoord(end.x(), end.y(), newZ + deltaZ);
+        return new Brick(brickId, newStart, newEnd);
     }
 
     @Override
     public String toString()
     {
         return "Brick{" +
-                "name='" + name + '\'' +
+                "name='" + brickId + '\'' +
                 ", start=" + start +
                 ", end=" + end +
                 ", brickSpan=" + brickSpan +
@@ -85,7 +101,7 @@ public class Brick
 
         Brick brick = (Brick) o;
 
-        if (!name.equals(brick.name))
+        if (brickId != brick.brickId)
         {return false;}
         if (!start.equals(brick.start))
         {return false;}
@@ -95,7 +111,7 @@ public class Brick
     @Override
     public int hashCode()
     {
-        int result = name.hashCode();
+        int result = brickId;
         result = 31 * result + start.hashCode();
         result = 31 * result + end.hashCode();
         return result;
